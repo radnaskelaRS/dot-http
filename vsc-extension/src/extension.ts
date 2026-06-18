@@ -1475,8 +1475,21 @@ async function showResult(
     } else if (viewMode === 'reuseTab') {
         const uri = vscode.Uri.parse(`${RESPONSE_SCHEME}:response.http`);
         responseProvider.update(uri, content);
-        const doc = await vscode.workspace.openTextDocument(uri);
-        await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside, preview: true, preserveFocus: true });
+        const existing = vscode.window.visibleTextEditors.find(
+            e => e.document.uri.toString() === uri.toString()
+        );
+        if (existing) {
+            await vscode.window.showTextDocument(existing.document, {
+                viewColumn: existing.viewColumn,
+                preserveFocus: true
+            });
+        } else {
+            const doc = await vscode.workspace.openTextDocument(uri);
+            await vscode.window.showTextDocument(doc, {
+                preview: false,
+                preserveFocus: true
+            });
+        }
     } else {
         const doc = await vscode.workspace.openTextDocument({ content, language: 'http' });
         await vscode.window.showTextDocument(doc, { viewColumn: vscode.ViewColumn.Beside });
